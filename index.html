@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MahaBodi</title>
+<meta name="description" content="MahaBodi: memory-driven System-1 decisions for AI agents over large option sets (choices, yes/no, routing), in Rust, built on fastmemory and Laya.">
+<link rel="icon" href="assets/logo/mahabodi-mark.svg">
+<link rel="stylesheet" href="site.css">
+<script src="site.js"></script>
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/logo/mahabodi-mark.svg" alt=""><span>Maha<b>Bodi</b></span></a>
+  <nav class="pages" aria-label="Site"><a href="index.html" aria-current="page">Product</a><a href="enterprise.html">Enterprise</a><a href="developers.html">Developers</a></nav>
+  <div class="right"><a href="https://github.com/mahabodi/mahabodi">GitHub</a><button class="theme" onclick="toggleTheme()" aria-label="Toggle light and dark theme">◐</button><button class="menu" onclick="toggleMenu()" aria-label="Menu">☰</button></div>
+</div></header>
+
+<section class="hero" style="border-top:0"><div class="wrap hero-grid">
+  <div>
+    <div class="kicker">Memory-driven System 1 for AI agents</div>
+    <h1>Decisions over <em>large</em> option sets, where the prompt stops scaling.</h1>
+    <p class="lead">Which intent, product, entity or tool, out of thousands or millions? Does this ticket match a known issue? Does the policy say yes? With a handful of options, prompt an LLM. With too many to list, MahaBodi keeps them in memory, retrieves a shortlist, and decides in one forward pass with Laya's typed decision models, grounded in your documents and labelled past decisions, in one Rust engine (tested at 5.9M pages — a tie with Laya + dense — and at a 1M constructed pool — a win; a simple remembered prior beats both; see <a href="#when">When to use it</a>).</p>
+    <div class="cta"><a class="btn primary" href="developers.html">Get started</a><a class="btn ghost" href="#results">See the benchmarks</a><a class="btn ghost" href="mahabodi-onepager.pdf" download>Download the one-pager (PDF)</a></div>
+    <div class="chips"><span class="chip">choices · yes/no · routing</span><span class="chip">Rust core</span><span class="chip">Python · Node · Java · C# · Go</span><span class="chip">MIT licensed</span><span class="chip">no text generation</span></div>
+  </div>
+  <img class="art" src="assets/logo/mahabodi-mark.svg" alt="The MahaBodi tree: glowing graph roots, a green trunk and branches, and heart-shaped Bodhi leaves carrying neural nodes">
+</div></section>
+
+<section id="why"><div class="wrap">
+  <h2>Why MahaBodi</h2>
+  <p class="sub">Accuracy numbers compare both systems on the same machine and items with an exact McNemar test; the later comparisons (learning, fine-tuning, entity linking) were pre-registered. The full tables, losses included, are <a href="#results">below</a>.</p>
+  <div class="grid g4">
+    <div class="card stat"><div class="num">0</div><div class="lbl">tokens generated per decision</div><div class="det">A typed answer with a probability per final candidate, and no text to parse. One model pass for a few options (a tournament runs a few for many). 125 ms p50 for 4 options on a CPU; 1.9× slower than Laya on 77.</div></div>
+    <div class="card stat"><div class="num">+16.8<small> pts</small></div><div class="lbl">vs Laya on 77-intent Banking77</div><div class="det">0.660 vs 0.492 for Laya as shipped; ties Laya with a shortlist (0.642). Multilingual too: 51 languages, 0.405 vs 0.366, against laya-multilingual without its Router.</div></div>
+    <div class="card stat"><div class="num">seconds</div><div class="lbl">to learn, no retraining</div><div class="det">2,000 labelled cases in 1.5–16 s on a CPU. Never below Laya on 5 fresh suites (a plain kNN is a strong alternative). Near-ties: 26&nbsp;% → 91&nbsp;% correct.</div></div>
+    <div class="card stat"><div class="num">0.78</div><div class="lbl">answers from your documents</div><div class="det">BoolQ grounded in memory, up from 0.42 with the question alone (always-yes: 0.626). Confidently wrong answers fall from 45&nbsp;% to 17&nbsp;%.</div></div>
+    <div class="card stat"><div class="num">61&nbsp;%<small> vs 5&nbsp;%</small></div><div class="lbl">finds what users mistype</div><div class="det">Misspelled keyword queries, right passage in the top 5, against BM25, at 300 paragraphs. At 2,000 it ties BM25 on clean queries and loses on keyword queries.</div></div>
+    <div class="card stat"><div class="num">5.9M</div><div class="lbl">pages: runs at catalogue scale</div><div class="det">100K: retrieval beat a dense shortlist (0.177 vs 0.121). 5.9M (v1 store): ties Laya + dense at 8.3 s per decision. 1M constructed pool (v2 store): beats Laya + exact dense, 0.164 vs 0.129 (p = 0.023), 6.2 s p50. A remembered alias prior beats all of them, 0.75–0.80.</div></div>
+    <div class="card stat"><div class="num">6</div><div class="lbl">languages, one Rust core</div><div class="det">Rust, Python, Node.js, Java (from source), C#/.NET and Go, on crates.io, PyPI, npm and NuGet. MIT licensed.</div></div>
+    <div class="card stat"><div class="num">Open</div><div class="lbl">results you can check</div><div class="det">Same-item comparisons, the later ones pre-registered; losses next to wins, per-item predictions in the repo, and every number recomputed by a second reviewing agent.</div></div>
+  </div>
+
+  <div class="card" style="padding:12px;margin-top:18px"><img src="assets/illustrations/decision-capacity.svg" alt="Candidate pool searched, log scale: Laya alone reads up to 150 measured options and cannot run at 10,000; Laya with your own index and MahaBodi both search 5.9 million pages and decide among 20 retrieved candidates. Height is pool size, not accuracy." style="width:100%;height:auto;display:block"></div>
+</div></section>
+
+<section id="when"><div class="wrap">
+  <h2>When to use it</h2>
+  <p class="sub">Where MahaBodi fits best, and where something else does.</p>
+  <div class="grid g3">
+    <div class="card"><div class="tag" style="color:var(--root)">Thousands to millions of options</div><h3>MahaBodi's memory</h3><p>Laya can't read 10,000 options at once. MahaBodi's retrieval beat a dense shortlist at 100K pages (0.177 vs 0.121), and it ran 5.9M pages through PostgreSQL on one Mac mini, tying Laya + dense there (numerically lower; 8.3 s per decision). The rebuilt v2 store (per-passage vectors) was then tested at a 1M-page constructed pool — golds, hard negatives mined against the baseline's own retriever, random fill — and beat Laya + an exact dense shortlist, 0.164 vs 0.129 (p = 0.023), consistent with retrieval (no decider-only arm at 1M). The alias prior still beats both (0.749). What the memory stores matters most: on AIDA, a simple remembered alias prior beat every system, MahaBodi included (0.78 vs 0.18 at 100K).</p></div>
+    <div class="card"><div class="tag" style="color:var(--leaf)">Many options, no training step</div><h3>MahaBodi</h3><p>It learns from labelled cases in seconds on a CPU and is never below Laya as shipped on 5 fresh suites (3 beats, 2 ties). A plain kNN is a strong alternative: at default settings it beats MahaBodi on Banking77 (0.892 vs 0.832; on another fresh sample, the opt-in <code>calibrate=200</code> ties kNN at 0.882 vs 0.876).</p></div>
+    <div class="card"><div class="tag" style="color:var(--muted)">Small fixed label sets (2–77 tested), GPU and labelled data</div><h3>Fine-tune a classifier</h3><p>A fully fine-tuned Laya beats MahaBodi on 4 of 6 suites. MahaBodi's advantage there is no training step, and updates take seconds when labels change.</p></div>
+  </div>
+</div></section>
+
+<section id="system"><div class="wrap">
+  <h2>From agent to decision</h2>
+  <p class="sub">Agents across the business send typed requests. MahaBodi remembers, shortlists and decides in one pass, then sends a typed answer back, and it learns from labelled outcomes without retraining. Illustrative uses; measured results are <a href="#results">below</a>.</p>
+  <div class="card" style="padding:12px"><img src="assets/illustrations/agents-routing.svg" alt="AI agents scattered across eight business functions, all routed through MahaBodi" style="width:100%;height:auto;display:block;max-width:760px;margin:0 auto"></div>
+  <div class="card" style="padding:12px;margin-top:18px"><img src="assets/illustrations/architecture-flow.svg" alt="Animated end-to-end architecture: agents send typed requests through six engine stages (typed request, guard and cache, query cascade, shortlist, Laya decision, experience) backed by memory (fastmemory graph, dense vectors, experience memory) and a PostgreSQL scale path; the typed answer returns to the agent and labelled outcomes feed experience memory" style="width:100%;height:auto;display:block"></div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <h2>One tree, four parts</h2>
+  <p class="sub">Each part of the tree is a component you can test on its own, and every result below traces back to one of them.</p>
+  <div class="grid g4">
+    <div class="card lift"><div class="tag" style="color:var(--root)">Roots</div><h3>fastmemory graph</h3><p>Documents become a topology of actions, data and concepts. A density check keeps every record reachable, and hybrid keyword-plus-meaning search finds it again, even through typos.</p></div>
+    <div class="card lift"><div class="tag" style="color:var(--bark)">Trunk</div><h3>The MahaBodi engine</h3><p>One Rust core: a query cascade with handoff flags, tournament shortlisting for many options, experience memory, and a script guard.</p></div>
+    <div class="card lift"><div class="tag" style="color:var(--bark)">Branches</div><h3>Six languages</h3><p>The same engine and the same JSON API from Rust, Python, Node.js, Java, C#/.NET and Go, all tested against the real model.</p></div>
+    <div class="card lift"><div class="tag" style="color:var(--leaf)">Leaves</div><h3>Laya decisions</h3><p>Typed <code>choice</code>, <code>score</code> and yes/no answers with calibrated probabilities, in one forward pass. Nothing is generated, so nothing needs parsing.</p></div>
+  </div>
+</div></section>
+
+
+
+<section id="results"><div class="wrap">
+  <h2>Measured, not promised</h2>
+  <p class="sub">Same machine, same Laya checkpoint on both sides, seeded test samples, and an exact McNemar test on the same items. A result counts as a win only at p&nbsp;&lt;&nbsp;0.05.</p>
+  <div class="grid g3">
+    <div class="card stat"><div class="num">150</div><div class="lbl">intents routed (CLINC150)</div><div class="det">0.736 vs 0.708 for Laya with a MiniLM shortlist, the fair baseline (p&nbsp;=&nbsp;0.027, one run); Laya alone 0.538. Re-tested on fresh items with an out-of-scope gate given to every system: 0.786 vs 0.756 (p&nbsp;=&nbsp;0.014), out-of-scope recall 72&nbsp;%. The pre-registered LLM arms of PREREG_ROUTER were not run (no API key): no claim against any LLM.</div></div>
+    <div class="card stat"><div class="num">+16.8<small> pts</small></div><div class="lbl">on 77-intent Banking77</div><div class="det">0.660 vs 0.492 zero-shot, through tournament shortlisting. It ties Laya's MiniLM-shortlist mitigation.</div></div>
+    <div class="card stat"><div class="num">0.78</div><div class="lbl">BoolQ answered from memory</div><div class="det">From 0.42 with the question only, and above always-yes (0.63). Confident errors fall from 45&nbsp;% to 17&nbsp;%. The oracle passage reaches 0.85.</div></div>
+  </div>
+  <div class="table" style="margin-top:18px"><table>
+    <thead><tr><th>Result</th><th>Laya / baseline</th><th>MahaBodi</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>MASSIVE intent, 51 languages, zero-shot</td><td>0.366 · 45/51</td><td>0.405 · 47/51</td><td class="beat">beat</td></tr>
+      <tr><td>CLINC150 re-test on fresh items, same out-of-scope gate for every system</td><td>0.756 (Laya + MiniLM shortlist + gate)</td><td>0.786</td><td class="beat">beat <span class="muted">(p = 0.014; the gate lifts out-of-scope recall to 68–72&nbsp;% for all systems)</span></td></tr>
+      <tr><td>Entity linking, 100K candidate Wikipedia pages (AIDA, 1,000 mentions; pre-registered)</td><td>0.121 (Laya + dense shortlist) · Laya alone cannot run</td><td>0.177</td><td class="beat">beat <span class="muted">(p = 0.0002; a retrieval gain: the deciders tie on the same shortlist)</span></td></tr>
+      <tr><td>Entity linking, natural 5.9M pages (v1 store: one vector per page, ts_rank)</td><td>0.122 (Laya + dense shortlist)</td><td>0.103</td><td class="tie">tie <span class="muted">(p = 0.14, numerically lower; 8.3 s per decision on a Mac mini)</span></td></tr>
+<tr><td>Entity linking, 1M-page constructed pool (v2 store: per-passage vectors, cascade)</td><td>0.129 (Laya + exact dense shortlist)</td><td><strong>0.164</strong></td><td class="beat">beat <span class="muted">(p = 0.023; prior-dominated stage: the alias prior gets 0.749)</span></td></tr>
+      <tr><td>Entity linking, 10K candidate pages</td><td>0.387 (Laya + dense shortlist)</td><td>0.384</td><td class="tie">tie <span class="muted">(p = 0.92)</span></td></tr>
+      <tr><td>Entity linking vs a context-free alias prior (the entity a name usually means), 10K / 100K / 5.9M / 1M</td><td>prior: 0.800 / 0.784 / 0.772 / 0.749</td><td>0.384 / 0.177 / 0.103 / 0.164 (v2 store at 1M)</td><td class="loss">loss <span class="muted">(the prior beats every context-reading system at every size)</span></td></tr>
+      <tr><td>Against Laya fully fine-tuned on the same 2,000 examples (encoder + head)</td><td>Emotion 0.916 · SST-5 0.558 · prompt-inj. 0.974 · Banking77 0.852</td><td>0.648 · 0.426 · 0.767 · 0.806</td><td class="loss">loss on 4 of 6 <span class="muted">· tie AG News, BoolQ · Banking77 ties with <code>calibrate=200</code></span></td></tr>
+      <tr><td>Against Laya with its head fine-tuned on the same 2,000 examples (fresh items)</td><td>Emotion 0.598 · Banking77 0.598 · SST-5 0.530</td><td>0.648 · 0.806 · 0.426</td><td class="beat">beat on Emotion, Banking77 <span class="muted">· tie AG News</span> · <span class="loss" style="font-weight:600">loss on SST-5</span></td></tr>
+      <tr><td>CLINC150, 150 intents + out-of-scope, zero-shot</td><td>0.708 (Laya + MiniLM shortlist) · Laya alone 0.538</td><td>0.736</td><td class="beat">beat <span class="muted">(p = 0.027, one run; in-scope only: out-of-scope recall 3&nbsp;%)</span></td></tr>
+      <tr><td>Banking77, 77 intents, zero-shot</td><td>0.492</td><td>0.660</td><td class="beat">beat <span class="muted">(ties Laya + MiniLM shortlist)</span></td></tr>
+      <tr><td>Banking77 with 2,000 labelled examples (default settings, fresh items)</td><td>0.462 (zero-shot)</td><td>0.832</td><td class="beat">beat <span class="muted">(but a plain kNN on the same labels: 0.892, a loss)</span></td></tr>
+      <tr><td>Same, with opt-in <code>calibrate=200</code> (third fresh sample)</td><td>0.446 · plain kNN 0.876</td><td>0.882</td><td class="beat">beat Laya <span class="muted">· ties kNN (p = 0.63); never below Laya or kNN on 5 suites</span></td></tr>
+      <tr><td>Latency, p50, CPU only (one Ubuntu i9-9900X, 8 threads, batch 1)</td><td>Laya PyTorch: 165 ms (4 options) · 379 ms (77)</td><td>125 ms · 730 ms</td><td class="beat">faster on 4 <span class="muted">(mostly ONNX Runtime)</span> · <span style="color:var(--warn);font-weight:600">1.9× slower on 77</span> <span class="muted">(tournament)</span></td></tr>
+      <tr><td>Calibration (ECE after the same temperature refit), 6 suites</td><td>Banking77 0.159</td><td>Banking77 0.050</td><td class="beat">beat on Banking77 only <span class="muted">(tournament); tie on 5</span></td></tr>
+      <tr><td>Experience memory, default settings, 5 suites, fresh items</td><td>Laya zero-shot</td><td>no suite below Laya</td><td class="beat">3 beats, 2 ties</td></tr>
+      <tr><td>Laya's near-ties (top-2 within 0.10), Banking77</td><td>26&nbsp;% correct</td><td>91&nbsp;% with labelled memory</td><td class="beat">beat</td></tr>
+      <tr><td>BoolQ answered from memory</td><td>0.424 question only · 0.626 always-yes</td><td>0.782</td><td class="beat">beat <span class="muted">(oracle passage: 0.846)</span></td></tr>
+      <tr><td>Misspelled keyword search (SQuAD, 300 paragraphs)</td><td>BM25: 0.05 recall@5</td><td>0.61</td><td class="beat">beat</td></tr>
+      <tr><td>Six other Laya suites (AG News, Emotion, SST-5, …)</td><td>=</td><td>=</td><td class="tie">tie: exact parity</td></tr>
+      <tr><td>Keyword search at 2,000 paragraphs</td><td>BM25: 0.684</td><td>0.660</td><td class="loss">loss</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Scorecard against Laya's 10 published benchmarks, zero-shot: <b>2 beats, 6 ties</b>; all 10 are now measured. Calibration is scored per suite: better on Banking77 only, identical on the other 5. Latency is faster on 4 options (mostly from ONNX Runtime) and slower on 77 (the tournament). Neither counts as a beat. MahaBodi runs Laya's own models: the wins come from how it uses them, not from a new model. <a href="https://github.com/mahabodi/mahabodi/blob/main/BENCHMARKS.md">Full tables and per-item predictions →</a></p>
+</div></section>
+
+<section id="limits"><div class="wrap">
+  <h2>Strengths and limits</h2>
+  <p class="sub">Where MahaBodi stands today, with ties and losses reported next to wins.</p>
+  <div class="grid g2">
+    <div class="card"><h3 style="color:var(--leaf)">Strong at</h3><ul>
+      <li>Memory that scales with your data: in process up to 100K documents, and on MahaBodi's PostgreSQL backend for large collections (pgvector for meaning search; Apache AGE for the graph, not yet used at 5.9M). 5.9M Wikipedia pages and 23M passages run on one Mac mini.</li>
+      <li>Retrieval that finds the right candidate: at 100K Wikipedia pages its memory puts the right page in the top 20 for 68&nbsp;% of mentions, against 37&nbsp;% for a dense-vector index, and it beats Laya + that index (0.177 vs 0.121)</li>
+      <li>Decisions with many options: 77 and 150 intents</li>
+      <li>Learning from labelled examples in seconds, with no retraining</li>
+      <li>Grounding decisions in your own documents, with citations</li>
+      <li>Typo-tolerant memory search</li>
+      <li>Zero generated tokens: a typed answer with probabilities, in one pass for a few options and a short tournament for many</li>
+    </ul></div>
+    <div class="card"><h3 style="color:var(--warn)">Limits today</h3><ul>
+      <li>It is not a new model; on six suites it matches Laya exactly</li>
+      <li>Not yet compared with an LLM given every option in its context; the claim is cost and speed, not accuracy</li>
+      <li>Out-of-scope detection needs the opt-in similarity gate (off by default): about 72&nbsp;% recall on fresh CLINC150 items in the benchmark, at some cost to in-scope accuracy. <code>decide()</code> reproduces the benchmark exactly (all 1,600 items on Ubuntu with the final build).</li>
+      <li>A fully fine-tuned Laya beats it on 4 of 6 small-label suites (e.g. Emotion 0.916 vs 0.648); with a fine-tuned head only, SST-5 is still a loss (0.530 vs 0.426)</li>
+      <li>On entity linking, a simple remembered alias prior (0.78) beats every context-reading system, MahaBodi included (0.18 at 100K pages)</li>
+      <li>With default settings, a plain kNN beats it on labelled Banking77 (0.892 vs 0.832). The opt-in <code>calibrate</code> step closes that gap to a tie by switching to kNN.</li>
+      <li>Retrieval can still be confidently wrong on hard, misspelled queries</li>
+      <li>The first 5.9M-page run used a simplified PostgreSQL configuration: one vector per page instead of one per passage, and PostgreSQL's text ranking instead of MahaBodi's own matching cascade. At 100K, those simplifications lowered the hit rate from 68&nbsp;% to 48&nbsp;%, and at 5.9M it took 8.3 s per decision and tied Laya + dense (0.103 vs 0.122). The full-configuration (v2) store has now been measured at a 1M constructed pool: it beats that baseline (0.164 vs 0.129, p = 0.023), and a pre-registered, descriptive 2×2 ablation shows that v2's improvement over the v1 store comes from the vector layout (granularity, embedded text and index change together and aren't separated). Its own 5.9M load stopped at 4.14M pages (disk), so v2 at the full natural pool remains unmeasured. The alias prior beats every context-reading arm at every size. TB–PB sizes are a blueprint (<a href="enterprise.html">Enterprise</a>).</li>
+      <li>Tool routing across thousands of tools is planned, not yet measured</li>
+      <li>Prebuilt packages (0.1.2) for Linux x86_64 and macOS x86_64 only, on crates.io, PyPI, npm and NuGet; Java is not on Maven Central</li>
+    </ul></div>
+  </div>
+</div></section>
+
+<section><div class="wrap grid g2" style="align-items:center">
+  <div><h2>Scale it, or build with it</h2><p class="sub" style="margin:0">Deploy memory on PostgreSQL + Apache AGE with models on your own GPUs, or start coding in six languages today.</p></div>
+  <div class="cta" style="margin:0;justify-content:flex-end"><a class="btn sea" href="enterprise.html">Enterprise</a><a class="btn primary" href="developers.html">Developers</a></div>
+</div></section>
+
+<footer><div class="wrap">
+  <span>MahaBodi · MIT License · built on fastmemory (MIT) and Laya (Apache-2.0)</span>
+  <nav><a href="index.html">Product</a><a href="enterprise.html">Enterprise</a><a href="developers.html">Developers</a><a href="https://github.com/mahabodi/mahabodi">GitHub</a></nav>
+</div></footer>
+</body>
+</html>
